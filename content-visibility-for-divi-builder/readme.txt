@@ -2,9 +2,10 @@
 Contributors: jhorowitz
 Donate link: https://www.aod-tech.com/donate/
 Tags: divi, divi theme, divi builder, elegant themes, elegantthemes, page builder, pagebuilder, conditional-tags, conditional tags, conditional, tags, show, hide, show hide
-Requires at least: 3.0
-Tested up to: 5.9
-Stable tag: 3.22
+Requires at least: 4.7
+Tested up to: 6.8.2
+Requires PHP: 7.0
+Stable tag: 3.23
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,6 +55,10 @@ If there are several common boolean expressions you use, this also has the added
 3. The Content Visibility option in the 3.x and older Divi Builder backend interface.
 
 == Changelog ==
+= 3.23 =
+* Catch errors in visibility expression evaluation; this allows the rest of the page to load while only hiding the module or section that triggered the error.
+* Email site admin when errors in visibility expression evalution occur with helpful debugging information (i.e. the error that occured, the URL on which it occured, and the full shortcode contents of the relevant module or section as an attachment).
+
 = 3.22 =
 * Fix compatibility with Stop Spammers plugin. Thanks to @kindred for providing access to a test environment exhibiting the issue!
 

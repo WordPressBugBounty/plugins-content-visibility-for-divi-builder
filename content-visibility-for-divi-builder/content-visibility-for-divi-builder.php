@@ -7,7 +7,7 @@
  * @wordpress-plugin
  * Plugin Name:       Content Visibility for Divi Builder
  * Description:       Allows Sections and Modules to be displayed/hidden based on the outcome of a PHP boolean expression.
- * Version:           3.22
+ * Version:           3.23
  * Author:            AoD Technologies LLC
  * Author URI:        http://www.aod-tech.com/
  * License:           GPL-2.0+
@@ -113,7 +113,7 @@ call_user_func( function() {
 
 	$wp_version = get_bloginfo( 'version' );
 
-	$version = '3.22';
+	$version = '3.23';
 	$stored_version = get_option( 'content_visibility_for_divi_builder_version' );
 
 	$is_network = function_exists( 'is_multisite' ) && is_multisite() && network_site_url() === site_url();
@@ -175,8 +175,31 @@ call_user_func( function() {
 					}
 
 					$visibility = true;
+					$expression = str_replace( array( '%22', '%5D' ), array( '"', ']' ), $atts['cvdb_content_visibility_check'] );
 
-					eval( '$visibility = ' . str_replace( array( '%22', '%5D' ), array( '"', ']' ), $atts['cvdb_content_visibility_check'] ) . ';' );
+					try {
+						eval( '$visibility = ' . $expression . ';' );
+					} catch (ParseError | Error $error) {
+						global $wp;
+						global $wp_filesystem;
+
+						$attachment_file_name = wp_tempnam();
+						try {
+							$attachments = array();
+							$error_message_format = "An error has been detected while evaluating a visibility expression.\nNOTE: This section/module will not be displayed until the error is corrected.\n\nPage URL:\n%1\$s\n\nVisibility expression:\n%2\$s\n\nError message:\n%3\$s";
+
+							if ( $wp_filesystem->put_contents( $attachment_file_name, print_r( $et_pb_element, true ), FS_CHMOD_FILE ) ) {
+								$error_message_format .= "\n\nThe full Divi Section/Module shortcode is attached to this email for reference.";
+								$attachments['full-divi-shortcode.txt'] = $attachment_file_name;
+							}
+
+							wp_mail( get_bloginfo( 'admin_email' ), '[' . get_bloginfo( 'name' ) . '] Content Visibility for Divi Builder - Visibility Expression Error Detected', sprintf( $error_message_format, home_url( add_query_arg( isset( $_SERVER['QUERY_STRING'] ) ? $_SERVER['QUERY_STRING'] : array(), '', $wp->request ) ), $expression, $error->getMessage() ), array('Content-Type: text/plain; charset=UTF-8'), $attachments );
+						} finally {
+							$wp_filesystem->delete( $attachment_file_name, false, 'f' );
+						}
+
+						$visibility = false;
+					}
 
 					if ( !$visibility ) {
 						$result = '';
