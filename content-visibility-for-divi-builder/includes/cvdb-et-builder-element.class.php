@@ -94,7 +94,7 @@ class CVDB_ET_Builder_Element extends \ET_Builder_Element {
 			return apply_filters( "{$this->underscore_text_domain}_shortcode_{$this->tag}", call_user_func( array( $this->wrapped_element, $this->wrapped_element_shortcode_callback ), $atts, $content, $function_name, $parent_address, $global_parent, $global_parent_type, $parent_type, $theme_builder_area ), $atts, $content, $function_name, $this->wrapped_element, $this->wrapped_element_shortcode_callback );
 		}
 
-		$visibility = ContentVisibilityForDiviBuilder::evaluate_visibility_expression( str_replace( array( '%22', '%5D' ), array( '"', ']' ), $atts['cvdb_content_visibility_check'] ), 'shortcode', $et_pb_element );
+		$visibility = ContentVisibilityForDiviBuilder::evaluate_visibility_expression( str_replace( array( '%22', '%5D' ), array( '"', ']' ), $atts['cvdb_content_visibility_check'] ), 'shortcode', $this->wrapped_element );
 
 		if ( !$visibility ) {
 			return '';

@@ -7,7 +7,7 @@
  * @wordpress-plugin
  * Plugin Name:       Content Visibility for Divi Builder
  * Description:       Allows Sections and Modules to be displayed/hidden based on the outcome of a PHP boolean expression.
- * Version:           4.00
+ * Version:           4.01
  * Author:            AoD Technologies LLC
  * Author URI:        http://www.aod-tech.com/
  * License:           GPL-2.0+

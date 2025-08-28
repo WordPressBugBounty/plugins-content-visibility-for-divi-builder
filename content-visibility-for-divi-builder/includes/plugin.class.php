@@ -23,7 +23,7 @@ class ContentVisibilityForDiviBuilder {
 	protected $is_saving_cache = false;
 
 	public static function get_version() {
-		return '4.00';
+		return '4.01';
 	}
 
 	public static function get_text_domain() {
