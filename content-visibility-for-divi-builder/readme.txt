@@ -1,11 +1,11 @@
 === Content Visibility for Divi Builder ===
 Contributors: jhorowitz
 Donate link: https://www.aod-tech.com/donate/
-Tags: divi, divi theme, divi builder, elegant themes, elegantthemes, page builder, pagebuilder, conditional-tags, conditional tags, conditional, tags, show, hide, show hide
-Requires at least: 4.7
+Tags: divi, visibility, conditional, show, hide
+Requires at least: 5.5
 Tested up to: 6.8.2
 Requires PHP: 7.0
-Stable tag: 3.23
+Stable tag: 4.00
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,7 +15,7 @@ Content Visibility for Divi Builder.
 
 Content Visibility for Divi Builder allows Sections and Modules to be displayed/hidden based on the outcome of a PHP boolean expression.
 
-This plugin is for both the standalone Divi theme (or child themes thereof) or the Divi Builder plugin, versions 2.6 or higher!
+This plugin is for both the standalone Divi theme (or child themes thereof) and the Divi Builder plugin, version 3 or higher!
 
 == Installation ==
 
@@ -27,7 +27,15 @@ This plugin is for both the standalone Divi theme (or child themes thereof) or t
 
 = Will this work for any module, even custom ones? =
 
-Yes! It detects and modifies Modules and Sections by class inheritance. As long as Elegant Themes continues to have a single root class for everything, this plugin should detect all of them, including third party ones!
+Yes!
+
+In Divi 4 and below:
+This plugin detects and modifies Modules and Sections by class inheritance.
+As long as Elegant Themes continues to have a single root class for everything, this plugin should detect all of them, including third party ones!
+
+In Divi 5:
+This plugin detects and modifies Modules and Sections by instrumenting all Gutenberg block render callbacks.
+As long as Elegant Themes continues to utilize Gutenberg blocks with render callbacks for everything, this plugin should detect all of them, including third party ones!
 
 = What if I deactivate this plugin? Will all of my content reappear automatically? =
 
@@ -38,7 +46,7 @@ This can be a good thing, however, as you may want to reinstall/reactivate in th
 
 = How do I use it!? =
 
-Once the plugin is installed and activated, a "Content Visibility" option will appear in each Section or Module's settings on either the Advanced tab under Visibility (for Divi 4.x) or the General Settings / Content tab (for Divi 3.x or lower.)
+Once the plugin is installed and activated, a "Content Visibility" option will appear in each Section or Module's settings on either the Advanced tab under Visibility (for Divi 4.x or higher) or the General Settings / Content tab (for Divi 3.x or lower.)
 
 You may enter any PHP boolean expression you would like, (e.g. is_user_logged_in()), and the Section or Module will only display if the expression evaluates to true.
 
@@ -48,13 +56,20 @@ If there are several common boolean expressions you use, this also has the added
 
 == Screenshots ==
 
-1. The Content Visibility option in the Divi 4.x interface.
+1. The Content Visibility option in the Divi 5.x interface.
 
-2. The Content Visibility option in the Divi 3.x Visual Builder interface.
+2. The Content Visibility option in the Divi 4.x interface.
 
-3. The Content Visibility option in the 3.x and older Divi Builder backend interface.
+3. The Content Visibility option in the Divi 3.x Visual Builder interface.
+
+4. The Content Visibility option in the Divi 3.x backend interface.
 
 == Changelog ==
+= 4.00 =
+* Refactor the code for performance and maintainability.
+* Add Divi 5 public alpha support!
+* Drop Divi 2.x support.
+
 = 3.23 =
 * Catch errors in visibility expression evaluation; this allows the rest of the page to load while only hiding the module or section that triggered the error.
 * Email site admin when errors in visibility expression evalution occur with helpful debugging information (i.e. the error that occured, the URL on which it occured, and the full shortcode contents of the relevant module or section as an attachment).
@@ -156,6 +171,10 @@ If there are several common boolean expressions you use, this also has the added
 * Initial Release
 
 == Upgrade Notice ==
+= 4.00 =
+* This release adds support for Divi 5 public alpha! Yay! Remember, Elegant Themes has said that the public alpha is not intended for use on production sites. So, if they update something in the Divi 5 public alpha in a breaking way and this plugin (used with Divi 5) also breaks, it shouldn't be a problem since you aren't using Divi 5 public alpha in production, right? :)
+* This release also drops support for Divi 2.x, which you probably aren't using anyway...
+
 = 3.19 =
 * This release fixes a major issue with DiviExtension-loaded modules in Divi 4.10.x, wherein the module is always shown regardless of any visibility expression settings. Please upgrade this plugin before upgrading Divi to 4.10.x!
 

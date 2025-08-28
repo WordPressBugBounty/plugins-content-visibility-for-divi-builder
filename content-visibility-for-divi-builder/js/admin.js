@@ -1,4 +1,4 @@
-jQuery( function($) {
+jQuery( function( $ ) {
 	'use strict';
 
 	$( document.body ).on( 'click', '#' + cvdbAdminScript.textDomain + '_rating-notice .notice-dismiss', function() {
