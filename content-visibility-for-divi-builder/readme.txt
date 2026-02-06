@@ -5,7 +5,7 @@ Tags: divi, visibility, conditional, show, hide
 Requires at least: 5.5
 Tested up to: 6.8.2
 Requires PHP: 7.0
-Stable tag: 4.01
+Stable tag: 4.02
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,9 @@ If there are several common boolean expressions you use, this also has the added
 4. The Content Visibility option in the Divi 3.x backend interface.
 
 == Changelog ==
+= 4.02 =
+* Add Plugin URI.
+
 = 4.01 =
 * Fix undefined variable in cvdb-et-builder-element.class.php. Thanks to @kindred for the quick bug report!
 
