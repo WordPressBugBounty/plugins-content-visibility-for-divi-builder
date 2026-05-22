@@ -3,7 +3,7 @@
 namespace AoDTechnologies\ContentVisibilityForDiviBuilder;
 
 // If this file is called directly, abort.
-if ( ! defined( 'WPINC' ) ) {
+if ( !defined( 'WPINC' ) ) {
 	die;
 }
 
@@ -68,7 +68,13 @@ class CVDB_ET_Builder_Element extends \ET_Builder_Element {
 	}
 
 	public function cvdb_execute( $atts, $content, $function_name, $parent_address = '', $global_parent = '', $global_parent_type = '', $parent_type = '', $theme_builder_area = '' ) {
-		if ( !isset( $atts['cvdb_content_visibility_check'] ) || trim( $atts['cvdb_content_visibility_check'] ) === '' ) {
+		if ( !isset( $atts['cvdb_content_visibility_check'] ) ) {
+			return apply_filters( "{$this->underscore_text_domain}_shortcode_{$this->tag}", call_user_func( array( $this->wrapped_element, $this->wrapped_element_shortcode_callback ), $atts, $content, $function_name, $parent_address, $global_parent, $global_parent_type, $parent_type, $theme_builder_area ), $atts, $content, $function_name, $this->wrapped_element, $this->wrapped_element_shortcode_callback );
+		}
+
+		$cvdb_content_visibility_check = trim( $atts['cvdb_content_visibility_check'] );
+
+		if ( $cvdb_content_visibility_check === '' ) {
 			return apply_filters( "{$this->underscore_text_domain}_shortcode_{$this->tag}", call_user_func( array( $this->wrapped_element, $this->wrapped_element_shortcode_callback ), $atts, $content, $function_name, $parent_address, $global_parent, $global_parent_type, $parent_type, $theme_builder_area ), $atts, $content, $function_name, $this->wrapped_element, $this->wrapped_element_shortcode_callback );
 		}
 
@@ -94,7 +100,7 @@ class CVDB_ET_Builder_Element extends \ET_Builder_Element {
 			return apply_filters( "{$this->underscore_text_domain}_shortcode_{$this->tag}", call_user_func( array( $this->wrapped_element, $this->wrapped_element_shortcode_callback ), $atts, $content, $function_name, $parent_address, $global_parent, $global_parent_type, $parent_type, $theme_builder_area ), $atts, $content, $function_name, $this->wrapped_element, $this->wrapped_element_shortcode_callback );
 		}
 
-		$visibility = ContentVisibilityForDiviBuilder::evaluate_visibility_expression( str_replace( array( '%22', '%5D' ), array( '"', ']' ), $atts['cvdb_content_visibility_check'] ), 'shortcode', $this->wrapped_element );
+		$visibility = ContentVisibilityForDiviBuilder::evaluate_visibility_expression( str_replace( array( '%22', '%5D' ), array( '"', ']' ), $cvdb_content_visibility_check ), 'shortcode', $this->wrapped_element );
 
 		if ( !$visibility ) {
 			return '';

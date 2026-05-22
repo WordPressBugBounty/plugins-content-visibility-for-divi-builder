@@ -25,7 +25,7 @@ class ContentVisibilityForDiviBuilder {
 	protected $is_saving_cache = false;
 
 	public static function get_version() {
-		return '5.00';
+		return '5.01';
 	}
 
 	public static function get_text_domain() {
@@ -705,6 +705,19 @@ class ContentVisibilityForDiviBuilder {
 			}
 
 			if ( !is_string( $cvdb_content_visibility_check ) ) {
+				return apply_filters(
+					self::$underscore_text_domain . '_block_render_callback',
+					call_user_func( $render_callback, $block_attributes, $content, $block ),
+					$block_attributes,
+					$content,
+					$block,
+					$render_callback
+				);
+			}
+
+			$cvdb_content_visibility_check = trim( $cvdb_content_visibility_check );
+
+			if ( $cvdb_content_visibility_check === '' ) {
 				return apply_filters(
 					self::$underscore_text_domain . '_block_render_callback',
 					call_user_func( $render_callback, $block_attributes, $content, $block ),

@@ -5,7 +5,7 @@ Tags: divi, visibility, conditional, show, hide
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.0
-Stable tag: 5.00
+Stable tag: 5.01
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -171,6 +171,9 @@ Example — allowlist a theme helper and a static service method:
 4. The Content Visibility option in the Divi 3.x backend interface.
 
 == Changelog ==
+= 5.01 =
+* Fix blank content visibility expressions causing PHP errors in Divi 5. Thanks to @ighulme and @beachmat for the bug reports!
+
 = 5.00 =
 * Visibility expressions are now evaluated against an allowlist of known-safe callables (default: WordPress conditional tags). Function calls and static method calls not on the allowlist are rejected with a "Contact the site administrator" error. `new`, instance method chains (`Foo::bar()->baz()`), variable functions, string-as-callable, and bare identifiers are hard errors and cannot be allowlisted — rewrite as a static helper. New installs have validation enabled by default; existing installs ship with validation off and a persistent admin notice prompting the migration workflow.
 * The Expression Validation tab now generates a copy-paste `add_filter('content_visibility_for_divi_builder_allowed_callables', ...)` snippet pre-populated with every custom callable found in current content (with first-sighting context: post id, module name, admin label, file:line via Reflection when available). Non-allowlistable patterns (instance methods, etc.) are listed separately as "must be rewritten."
