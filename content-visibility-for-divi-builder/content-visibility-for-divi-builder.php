@@ -7,7 +7,7 @@
  * Plugin Name:       Content Visibility for Divi Builder
  * Plugin URI:        https://aod-tech.com/
  * Description:       Allows Sections and Modules to be displayed/hidden based on the outcome of a PHP boolean expression.
- * Version:           5.01
+ * Version:           5.02
  * Author:            AoD Technologies LLC
  * Author URI:        https://aod-tech.com/
  * License:           GPL-2.0+
@@ -40,5 +40,5 @@ if ( !defined( 'CVDB_PLUGIN' ) ) {
 	define( 'CVDB_PLUGIN', __FILE__ );
 }
 
-require_once 'includes/global-eval-helper.php';
-require_once 'includes/plugin.class.php';
+require_once __DIR__ . '/includes/global-eval-helper.php';
+require_once __DIR__ . '/includes/plugin.class.php';

@@ -5,7 +5,7 @@ Tags: divi, visibility, conditional, show, hide
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.0
-Stable tag: 5.01
+Stable tag: 5.02
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -171,6 +171,9 @@ Example — allowlist a theme helper and a static service method:
 4. The Content Visibility option in the Divi 3.x backend interface.
 
 == Changelog ==
+= 5.02 =
+* Fix `Call to undefined function cvdb_eval_expression()` errors and the false-positive "eval() appears to be disabled" admin notice on hosts that shadow the plugin's relative bootstrap require. Thanks to @helpmelisa and @cantonbecker for the bug reports!
+
 = 5.01 =
 * Fix blank content visibility expressions causing PHP errors in Divi 5. Thanks to @ighulme and @beachmat for the bug reports!
 
