@@ -25,7 +25,7 @@ class ContentVisibilityForDiviBuilder {
 	protected $is_saving_cache = false;
 
 	public static function get_version() {
-		return '5.02';
+		return CVDB_VERSION;
 	}
 
 	public static function get_text_domain() {
@@ -153,10 +153,10 @@ class ContentVisibilityForDiviBuilder {
 		$stored_version = get_option( self::$underscore_text_domain . '_version' );
 
 		if ( $stored_version === false ) {
-			// New install — validation on by default
+			// New install - validation on by default
 			update_option( self::$validation_option_key, '1' );
 		} else if ( version_compare( $stored_version, '5.00', '<' ) ) {
-			// Upgrade — validation pending, don't overwrite if already set
+			// Upgrade - validation pending, don't overwrite if already set
 			if ( get_option( self::$validation_option_key ) === false ) {
 				update_option( self::$validation_option_key, '0' );
 			}
@@ -257,22 +257,69 @@ class ContentVisibilityForDiviBuilder {
 		$this->is_saving_cache = apply_filters( 'et_builder_modules_is_saving_cache', false );
 	}
 
-	public static function is_eval_available() {
+	const EVAL_STATUS_AVAILABLE         = 'available';
+	const EVAL_STATUS_HELPER_MISSING    = 'helper_missing';
+	const EVAL_STATUS_EVAL_THREW        = 'eval_threw';
+	const EVAL_STATUS_EVAL_WRONG_RESULT = 'eval_wrong_result';
+
+	/**
+	 * Probe whether visibility expressions can actually be evaluated on
+	 * this request's runtime, returning one of four discrete reason codes
+	 * so the admin notice can give a remediation that matches the actual
+	 * failure mode:
+	 *
+	 *   - EVAL_STATUS_AVAILABLE         eval() works as expected.
+	 *   - EVAL_STATUS_HELPER_MISSING    The helper file did not define
+	 *                                   cvdb_eval_expression. Almost
+	 *                                   always means includes/global-eval-helper.php
+	 *                                   is empty or missing on disk after
+	 *                                   a partial / failed plugin
+	 *                                   auto-update (disk-quota or
+	 *                                   inode-quota exhaustion, FTP
+	 *                                   transfer interruption, or a
+	 *                                   security tool truncating files
+	 *                                   that contain eval). Fix:
+	 *                                   reinstall the plugin.
+	 *   - EVAL_STATUS_EVAL_THREW        eval() threw - typically a
+	 *                                   Suhosin-class hardening
+	 *                                   extension blocks eval outright.
+	 *   - EVAL_STATUS_EVAL_WRONG_RESULT eval() ran without throwing but
+	 *                                   returned something other than
+	 *                                   the expected literal (e.g.
+	 *                                   Suhosin's executor.disable_eval
+	 *                                   mode lets the call complete but
+	 *                                   neuters the return).
+	 */
+	public static function eval_availability_status() {
 		static $cached = null;
 		if ( $cached !== null ) {
 			return $cached;
 		}
-		try {
-			$cached = ( \cvdb_eval_expression( '42' ) === 42 );
-		} catch ( \Throwable $e ) {
-			$cached = false;
+
+		if ( ! function_exists( 'cvdb_eval_expression' ) ) {
+			return $cached = self::EVAL_STATUS_HELPER_MISSING;
 		}
-		return $cached;
+
+		try {
+			$result = \cvdb_eval_expression( '42' );
+		} catch ( \Throwable $e ) {
+			return $cached = self::EVAL_STATUS_EVAL_THREW;
+		}
+
+		if ( $result !== 42 ) {
+			return $cached = self::EVAL_STATUS_EVAL_WRONG_RESULT;
+		}
+
+		return $cached = self::EVAL_STATUS_AVAILABLE;
+	}
+
+	public static function is_eval_available() {
+		return self::eval_availability_status() === self::EVAL_STATUS_AVAILABLE;
 	}
 
 	public static function get_allowed_callables() {
 		return apply_filters( self::$underscore_text_domain . '_allowed_callables', array(
-			// WP conditional tags — pure read-only context queries (default allowlist).
+			// WP conditional tags - pure read-only context queries (default allowlist).
 			// Site admins extend this list via the filter to opt in custom helpers.
 			'is_user_logged_in', 'current_user_can', 'is_admin', 'is_super_admin',
 			'is_singular', 'is_single', 'is_page', 'is_home', 'is_front_page',
@@ -292,7 +339,7 @@ class ContentVisibilityForDiviBuilder {
 		}
 		// Strip leading `\` (fully-qualified marker)
 		$name = ltrim( $name, '\\' );
-		// Class & function names are case-insensitive in PHP — lowercase for stable matching
+		// Class & function names are case-insensitive in PHP - lowercase for stable matching
 		return strtolower( $name );
 	}
 
@@ -329,7 +376,7 @@ class ContentVisibilityForDiviBuilder {
 				$name = 'namespace';
 				$i++;
 				if ( $i >= $count || ! is_array( $tokens[ $i ] ) || $tokens[ $i ][0] !== T_NS_SEPARATOR ) {
-					// `namespace` keyword used standalone — emit as-is, will fail token allowlist anyway
+					// `namespace` keyword used standalone - emit as-is, will fail token allowlist anyway
 					$result[] = $tokens[ $start ];
 					$i = $start + 1;
 					continue;
@@ -358,7 +405,7 @@ class ContentVisibilityForDiviBuilder {
 			}
 
 			if ( $i === $start + 1 && $is_string ) {
-				// Unchanged plain T_STRING — emit original
+				// Unchanged plain T_STRING - emit original
 				$result[] = $tokens[ $start ];
 			} else {
 				$result[] = array( T_STRING, $name, $line );
@@ -434,7 +481,7 @@ class ContentVisibilityForDiviBuilder {
 		$tokens = token_get_all( '<?php ' . $expression );
 		array_shift( $tokens ); // drop the opening <?php
 
-		// Drop whitespace tokens — they're never significant for what we check
+		// Drop whitespace tokens - they're never significant for what we check
 		$tokens = array_values( array_filter( $tokens, function( $t ) {
 			return ! ( is_array( $t ) && $t[0] === T_WHITESPACE );
 		} ) );
@@ -477,13 +524,13 @@ class ContentVisibilityForDiviBuilder {
 								return sprintf( 'Blocked function: %s', $callable );
 							}
 							if ( !in_array( $normalized, $allowed_callables, true ) ) {
-								return sprintf( 'Unknown callable: %s — not on the allowlist. Contact the site administrator if it should be added.', $callable );
+								return sprintf( 'Unknown callable: %s - not on the allowlist. Contact the site administrator if it should be added.', $callable );
 							}
 							$prev_significant_token = $tokens[ $i + 2 ];
 							$i += 2;
 							continue;
 						}
-						// Class::CONSTANT (no parens) — read-only access; allowed. Walk through.
+						// Class::CONSTANT (no parens) - read-only access; allowed. Walk through.
 						$prev_significant_token = $token;
 						continue;
 					}
@@ -495,20 +542,20 @@ class ContentVisibilityForDiviBuilder {
 							return sprintf( 'Blocked function: %s', $token_value );
 						}
 						if ( !in_array( $normalized, $allowed_callables, true ) ) {
-							return sprintf( 'Unknown callable: %s — not on the allowlist. Contact the site administrator if it should be added.', $token_value );
+							return sprintf( 'Unknown callable: %s - not on the allowlist. Contact the site administrator if it should be added.', $token_value );
 						}
 						$prev_significant_token = $token;
 						continue;
 					}
 
-					// Bare name — only allowed if it's a literal or the second part of Class::X
+					// Bare name - only allowed if it's a literal or the second part of Class::X
 					$preceded_by_double_colon = is_array( $prev_significant_token ) && $prev_significant_token[0] === T_DOUBLE_COLON;
 					$lower_value = strtolower( $token_value );
 					if ( $preceded_by_double_colon || $lower_value === 'true' || $lower_value === 'false' || $lower_value === 'null' ) {
 						$prev_significant_token = $token;
 						continue;
 					}
-					return sprintf( 'Unknown identifier: %1$s — must be a function call (e.g. %1$s()), static method, class constant, or a true/false/null literal.', $token_value );
+					return sprintf( 'Unknown identifier: %1$s - must be a function call (e.g. %1$s()), static method, class constant, or a true/false/null literal.', $token_value );
 				}
 
 				// Instance method call: -> <Name> (
@@ -518,7 +565,7 @@ class ContentVisibilityForDiviBuilder {
 					$name_tok = $next;
 					$after = $i + 2 < $count ? $tokens[ $i + 2 ] : null;
 					if ( is_array( $name_tok ) && $name_tok[0] === T_STRING && $after === '(' ) {
-						return sprintf( 'Instance method call ->%s() cannot be allowlisted — rewrite as a static helper', $name_tok[1] );
+						return sprintf( 'Instance method call ->%s() cannot be allowlisted - rewrite as a static helper', $name_tok[1] );
 					}
 				}
 
@@ -536,20 +583,20 @@ class ContentVisibilityForDiviBuilder {
 				// Anything-as-callable: when `(` follows a value that isn't a name token, the
 				// thing being called is the result of an expression and can't be tied to an
 				// allowlistable callable. Catches:
-				//   'phpinfo'()              — string-as-callable
-				//   ('phpinfo')()            — parenthesized string
-				//   ('php' . 'info')()       — concatenation result
-				//   func()()                 — chained call (call returns callable, then call)
-				//   ['phpinfo'][0]()         — array literal indexed then called
+				//   'phpinfo'()              - string-as-callable
+				//   ('phpinfo')()            - parenthesized string
+				//   ('php' . 'info')()       - concatenation result
+				//   func()()                 - chained call (call returns callable, then call)
+				//   ['phpinfo'][0]()         - array literal indexed then called
 				if ( $token === '(' && $prev_significant_token !== null ) {
 					if ( is_array( $prev_significant_token ) && $prev_significant_token[0] === T_CONSTANT_ENCAPSED_STRING ) {
 						return sprintf( 'String used as callable: %s', $prev_significant_token[1] );
 					}
 					if ( $prev_significant_token === ')' ) {
-						return 'Call invocation on a non-name expression — `(...)()` cannot be allowlisted; rewrite as a static helper';
+						return 'Call invocation on a non-name expression - `(...)()` cannot be allowlisted; rewrite as a static helper';
 					}
 					if ( $prev_significant_token === ']' ) {
-						return 'Call invocation on an array element — `[...]()` cannot be allowlisted; rewrite as a static helper';
+						return 'Call invocation on an array element - `[...]()` cannot be allowlisted; rewrite as a static helper';
 					}
 				}
 
@@ -904,7 +951,7 @@ class ContentVisibilityForDiviBuilder {
 			$validation_enabled = get_option( self::$validation_option_key );
 ?>
 <h2 class="title"><?php _e( 'Expression Validation', self::get_text_domain() ); ?></h2>
-<p><?php _e( 'Expression validation prevents potentially dangerous PHP code from being executed via visibility expressions. When enabled, all expressions are checked against an allowlist of safe tokens and a denylist of dangerous functions before evaluation.', self::get_text_domain() ); ?></p>
+<p><?php _e( 'Expression validation prevents potentially dangerous PHP code from being executed via visibility expressions. When enabled, all expressions are checked before evaluation against allowlists of safe tokens, operators and callables, plus a denylist of dangerous functions.', self::get_text_domain() ); ?></p>
 
 <h3><?php _e( 'Status', self::get_text_domain() ); ?></h3>
 <?php if ( $validation_enabled === '1' ) { ?>
@@ -929,7 +976,7 @@ class ContentVisibilityForDiviBuilder {
 <?php } else { ?>
 <hr>
 <h3><?php _e( 'Disable Validation', self::get_text_domain() ); ?></h3>
-<p><?php _e( 'If validation is causing unexpected behavior on your site, you can disable it temporarily while you investigate. While disabled, expressions are evaluated as-is — anything dangerous in your content will run.', self::get_text_domain() ); ?></p>
+<p><?php _e( 'If validation is causing unexpected behavior on your site, you can disable it temporarily while you investigate. While disabled, expressions are evaluated as-is - anything dangerous in your content will run.', self::get_text_domain() ); ?></p>
 <form method="post" style="background:#fcf0f1;border-left:4px solid #d63638;padding:12px 16px;max-width:560px;">
 	<p style="margin-top:0;"><?php printf( __( 'Type %s in the field below to confirm:', self::get_text_domain() ), '<code>DISABLE</code>' ); ?></p>
 	<?php wp_nonce_field( self::get_text_domain() . '_disable_validation', '_cvdb_validation_nonce' ); ?>
@@ -946,7 +993,7 @@ class ContentVisibilityForDiviBuilder {
 <hr>
 
 <h2 class="title"><?php /* translators: 1: filter name, 2: parameter list */ printf( __( 'Filter: %1$s<br>Parameters:<br>%2$s', self::get_text_domain() ), '<code>content_visibility_for_divi_builder_blocked_functions</code>', sprintf( __( '&nbsp; &nbsp; %1$s: Array of lowercase function names that are blocked when present in any expression. Returning an unfiltered call to one of these names from an expression produces a hard validation error.', self::get_text_domain() ), '<code>$blocked_functions</code>' ) ); ?></h2>
-<p><?php _e( 'Affects both runtime evaluation and the scanner. Use this to add organization-specific dangerous functions to the denylist. Note: <strong>removing</strong> entries weakens the security posture — only do so if you have audited the function in question.', self::get_text_domain() ); ?></p>
+<p><?php _e( 'Affects both runtime evaluation and the scanner. Use this to add organization-specific dangerous functions to the denylist. Note: <strong>removing</strong> entries weakens the security posture - only do so if you have audited the function in question.', self::get_text_domain() ); ?></p>
 <p><?php _e( 'Example: block calls to a custom helper that performs writes.', self::get_text_domain() ); ?></p>
 <pre><code>add_filter( 'content_visibility_for_divi_builder_blocked_functions', function( $names ) {
     $names[] = 'mytheme_force_login';
@@ -955,7 +1002,7 @@ class ContentVisibilityForDiviBuilder {
 <hr>
 
 <h2 class="title"><?php /* translators: 1: filter name, 2: parameter list */ printf( __( 'Filter: %1$s<br>Parameters:<br>%2$s', self::get_text_domain() ), '<code>content_visibility_for_divi_builder_allowed_tokens</code>', sprintf( __( '&nbsp; &nbsp; %1$s: Array of PHP tokenizer type constants (e.g. <code>T_STRING</code>, <code>T_LNUMBER</code>) that are permitted to appear in expressions.', self::get_text_domain() ), '<code>$allowed_tokens</code>' ) ); ?></h2>
-<p><?php _e( 'Affects both runtime evaluation and the scanner. Tokens not in this list cause validation to fail with "Disallowed token type". The default list permits identifiers, literals, comparison/logical operators, namespacing, and array syntax — but excludes things like <code>T_VARIABLE</code> (no <code>$vars</code>) and assignment operators.', self::get_text_domain() ); ?></p>
+<p><?php _e( 'Affects both runtime evaluation and the scanner. Tokens not in this list cause validation to fail with "Disallowed token type". The default list permits identifiers, literals, comparison/logical operators, namespacing, and array syntax - but excludes things like <code>T_VARIABLE</code> (no <code>$vars</code>) and assignment operators.', self::get_text_domain() ); ?></p>
 <hr>
 
 <h2 class="title"><?php /* translators: 1: filter name, 2: parameter list */ printf( __( 'Filter: %1$s<br>Parameters:<br>%2$s', self::get_text_domain() ), '<code>content_visibility_for_divi_builder_allowed_chars</code>', sprintf( __( '&nbsp; &nbsp; %1$s: Array of single-character tokens (e.g. <code>(</code>, <code>)</code>, <code>,</code>) that are permitted to appear in expressions.', self::get_text_domain() ), '<code>$allowed_chars</code>' ) ); ?></h2>
@@ -1005,10 +1052,26 @@ class ContentVisibilityForDiviBuilder {
 <?php
 		}
 
-		if ( !self::is_eval_available() ) {
+		$eval_status = self::eval_availability_status();
+		if ( $eval_status !== self::EVAL_STATUS_AVAILABLE ) {
+			$message = '';
+			switch ( $eval_status ) {
+				case self::EVAL_STATUS_HELPER_MISSING:
+					$message = __( 'The plugin installation appears to be incomplete: the helper function <code>cvdb_eval_expression()</code> is undefined. This usually means <code>includes/global-eval-helper.php</code> is empty or missing - a common outcome of a failed plugin auto-update on shared hosting (disk or inode quota, an interrupted transfer, or a security tool truncating files that contain <code>eval</code>). Visibility expressions cannot be evaluated until this is fixed. Deactivate and delete this plugin via the Plugins screen, then reinstall it fresh from WordPress.org.', self::get_text_domain() );
+					break;
+				case self::EVAL_STATUS_EVAL_THREW:
+					$message = __( 'PHP <code>eval()</code> threw an exception when invoked, which usually means it is blocked by a security extension (e.g. the Suhosin extension, a custom hardening policy, or a patched PHP binary). Visibility expressions cannot be evaluated until <code>eval()</code> is restored. Contact your hosting provider, or remove this plugin if <code>eval()</code> cannot be re-enabled.', self::get_text_domain() );
+					break;
+				case self::EVAL_STATUS_EVAL_WRONG_RESULT:
+					$message = __( 'PHP <code>eval()</code> on this host runs without throwing but returns an unexpected value, typically because a security extension (e.g. Suhosin\'s <code>executor.disable_eval</code> mode) lets the call complete and then neutralizes its return. Visibility expressions cannot be reliably evaluated until <code>eval()</code> is fully restored. Contact your hosting provider.', self::get_text_domain() );
+					break;
+				default:
+					$message = __( 'PHP <code>eval()</code> appears to be disabled on this host (commonly via the Suhosin extension or a custom hardening policy). Visibility expressions cannot be evaluated until <code>eval()</code> is re-enabled. Contact your hosting provider, or remove this plugin if <code>eval()</code> cannot be restored.', self::get_text_domain() );
+					break;
+			}
 ?>
 <div class="notice notice-error">
-	<p><strong><?php echo esc_html( self::get_name() ); ?>:</strong> <?php _e( 'PHP <code>eval()</code> appears to be disabled on this host (commonly via the Suhosin extension or a custom hardening policy). Visibility expressions cannot be evaluated until <code>eval()</code> is re-enabled. Contact your hosting provider, or remove this plugin if <code>eval()</code> cannot be restored.', self::get_text_domain() ); ?></p>
+	<p><strong><?php echo esc_html( self::get_name() ); ?>:</strong> <?php echo wp_kses_post( $message ); ?></p>
 </div>
 <?php
 		}

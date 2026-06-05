@@ -127,8 +127,8 @@ jQuery( function( $ ) {
 			key = 'post-' + post.parent.id;
 			headerInfo = post.parent;
 			note = post.parent.current_flagged > 0
-				? 'Current content: ' + post.parent.current_flagged + ' flagged expression(s) — listed below'
-				: 'Current content: clean — issues only in older revisions';
+				? 'Current content: ' + post.parent.current_flagged + ' flagged expression(s) - listed below'
+				: 'Current content: clean - issues only in older revisions';
 		} else if ( isRev ) {
 			// Revision with no resolvable parent (orphaned)
 			key = 'orphan-' + post.id;
@@ -194,7 +194,7 @@ jQuery( function( $ ) {
 			} );
 			warningsHtml =
 				'<div style="margin-top:6px;padding:6px 8px;background:#fcf9e8;border-left:3px solid #dba617;font-size:12px;">' +
-					'<strong>&#9888; Custom callables — validator cannot verify:</strong>' +
+					'<strong>&#9888; Custom callables - validator cannot verify:</strong>' +
 					'<ul style="margin:4px 0 0 18px;padding:0;">' + items.join( '' ) + '</ul>' +
 				'</div>';
 		}
@@ -206,7 +206,7 @@ jQuery( function( $ ) {
 
 		var errorCellHtml = expr.error
 			? escHtml( expr.error )
-			: ( expr.warnings && expr.warnings.length ? '<em style="color:#996800;">warnings — see below</em>' : '' );
+			: ( expr.warnings && expr.warnings.length ? '<em style="color:#996800;">warnings - see below</em>' : '' );
 
 		var $row = $(
 			'<tr' + rowClass + rowStyle + '>' +
@@ -233,13 +233,13 @@ jQuery( function( $ ) {
 			case 'located':
 				return entry.location ? '; defined at ' + entry.location : '';
 			case 'unknown_function':
-				return '; WARNING: function not defined — verify before allowlisting';
+				return '; WARNING: function not defined - verify before allowlisting';
 			case 'unknown_class':
-				return '; WARNING: class not defined — verify before allowlisting';
+				return '; WARNING: class not defined - verify before allowlisting';
 			case 'unknown_method':
-				return '; WARNING: method not defined on class — verify before allowlisting';
+				return '; WARNING: method not defined on class - verify before allowlisting';
 			case 'internal':
-				return '; built-in (PHP/extension) — review behavior';
+				return '; built-in (PHP/extension) - review behavior';
 			default:
 				return '';
 		}
@@ -250,13 +250,13 @@ jQuery( function( $ ) {
 			case 'located':
 				return 'defined at <code>' + escHtml( warning.location ) + '</code>';
 			case 'internal':
-				return '<em>built-in (PHP or extension) — review what this does</em>';
+				return '<em>built-in (PHP or extension) - review what this does</em>';
 			case 'unknown_function':
-				return '<em>function not defined — likely a typo or missing plugin (will throw at runtime)</em>';
+				return '<em>function not defined - likely a typo or missing plugin (will throw at runtime)</em>';
 			case 'unknown_class':
-				return '<em>class not defined — likely a typo or missing plugin (will throw at runtime)</em>';
+				return '<em>class not defined - likely a typo or missing plugin (will throw at runtime)</em>';
 			case 'unknown_method':
-				return '<em>class exists but method does not — likely a typo (will throw at runtime)</em>';
+				return '<em>class exists but method does not - likely a typo (will throw at runtime)</em>';
 			case 'reflection_unavailable':
 				return '<em>location unresolved (Reflection extension is unavailable on this host)</em>';
 			default:
@@ -311,8 +311,8 @@ jQuery( function( $ ) {
 		}
 
 		var modeBadge = validationEnabled
-			? '<span style="display:inline-block;padding:2px 8px;background:#d63638;color:#fff;border-radius:3px;font-size:11px;font-weight:600;letter-spacing:.5px;">VALIDATION ON — these block at runtime</span>'
-			: '<span style="display:inline-block;padding:2px 8px;background:#dba617;color:#1d2327;border-radius:3px;font-size:11px;font-weight:600;letter-spacing:.5px;">VALIDATION OFF — these would block when enabled</span>';
+			? '<span style="display:inline-block;padding:2px 8px;background:#d63638;color:#fff;border-radius:3px;font-size:11px;font-weight:600;letter-spacing:.5px;">VALIDATION ON - these block at runtime</span>'
+			: '<span style="display:inline-block;padding:2px 8px;background:#dba617;color:#1d2327;border-radius:3px;font-size:11px;font-weight:600;letter-spacing:.5px;">VALIDATION OFF - these would block when enabled</span>';
 
 		var html = '<div id="cvdb-scan-migration" style="margin-top:24px;">' +
 			'<h3>Migration helper ' + modeBadge + '</h3>';
@@ -333,7 +333,7 @@ jQuery( function( $ ) {
 
 		if ( nonAllowlistable.length ) {
 			html +=
-				'<h4 style="margin-top:18px;">Non-allowlistable patterns — must be rewritten (' + nonAllowlistable.length + ')</h4>' +
+				'<h4 style="margin-top:18px;">Non-allowlistable patterns - must be rewritten (' + nonAllowlistable.length + ')</h4>' +
 				'<p>The following patterns cannot be allowlisted because the validator can\'t determine what code they invoke. ' +
 				'Rewrite each occurrence as a static helper and call that instead:</p>' +
 				'<ul style="margin:8px 0 0 24px;">' +

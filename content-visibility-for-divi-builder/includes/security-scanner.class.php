@@ -51,7 +51,7 @@ class SecurityScanner {
 	}
 
 	public static function on_save_post( $post_id, $post, $update ) {
-		// Skip autosaves and revisions — only act on user-initiated saves of the live post
+		// Skip autosaves and revisions - only act on user-initiated saves of the live post
 		if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
 			return;
 		}
@@ -133,7 +133,7 @@ class SecurityScanner {
 
 	/**
 	 * Find every expression in $content that fails validation. Returns an array
-	 * of { expression, type, module_name, admin_label, error } entries — empty
+	 * of { expression, type, module_name, admin_label, error } entries - empty
 	 * if everything validates.
 	 */
 	private static function find_validation_errors( $content ) {
@@ -182,7 +182,7 @@ class SecurityScanner {
 			$lines[] = '    → ' . $e['error'];
 			$lines[] = '';
 		}
-		$lines[] = __( 'No changes were written — your existing post is unchanged. Fix or remove the offending expressions and save again.', ContentVisibilityForDiviBuilder::get_text_domain() );
+		$lines[] = __( 'No changes were written - your existing post is unchanged. Fix or remove the offending expressions and save again.', ContentVisibilityForDiviBuilder::get_text_domain() );
 		return implode( "\n", $lines );
 	}
 
@@ -191,8 +191,8 @@ class SecurityScanner {
 		$out  = '<h1>' . esc_html__( 'Save blocked by Content Visibility validation', $text_domain ) . '</h1>';
 		$out .= '<p>' . esc_html( sprintf(
 			_n(
-				'%d visibility expression failed validation. Your existing post has NOT been changed — use your browser\'s Back button to return to the editor, fix the expression(s), and save again.',
-				'%d visibility expressions failed validation. Your existing post has NOT been changed — use your browser\'s Back button to return to the editor, fix the expressions, and save again.',
+				'%d visibility expression failed validation. Your existing post has NOT been changed - use your browser\'s Back button to return to the editor, fix the expression(s), and save again.',
+				'%d visibility expressions failed validation. Your existing post has NOT been changed - use your browser\'s Back button to return to the editor, fix the expressions, and save again.',
 				count( $errors ),
 				$text_domain
 			),
@@ -213,7 +213,7 @@ class SecurityScanner {
 	}
 
 	/**
-	 * REST publish gate — fires for Gutenberg/Divi 5 VB and any REST API client.
+	 * REST publish gate - fires for Gutenberg/Divi 5 VB and any REST API client.
 	 * Returning WP_Error blocks the publish; the editor surfaces the message in its standard error UI.
 	 */
 	public static function gate_rest_publish( $prepared_post, $request ) {
@@ -222,7 +222,7 @@ class SecurityScanner {
 		}
 
 		// Resolve the EFFECTIVE status & content after this update. On partial updates,
-		// only the fields the client sent are present on $prepared_post — fall back to the
+		// only the fields the client sent are present on $prepared_post - fall back to the
 		// existing stored post for whatever's missing.
 		$existing = !empty( $prepared_post->ID ) ? get_post( $prepared_post->ID ) : null;
 
@@ -254,7 +254,7 @@ class SecurityScanner {
 	 * filter, so when validation fails we either abort the request (interactive contexts) or
 	 * silently preserve the existing post's content & status (non-interactive contexts).
 	 *
-	 * Either way, the existing post is left in its current state — already-published pages stay
+	 * Either way, the existing post is left in its current state - already-published pages stay
 	 * published with their previous content. No demote-to-draft. The user's in-progress edits stay
 	 * in the VB's React state (AJAX) or in the browser's form history (classic), so a Back-button
 	 * → fix → save flow recovers cleanly.
@@ -271,7 +271,7 @@ class SecurityScanner {
 		}
 
 		// Resolve EFFECTIVE content. wp_update_post() with only status changed leaves
-		// $data['post_content'] empty — fall back to the existing stored post content.
+		// $data['post_content'] empty - fall back to the existing stored post content.
 		// Note: wp_insert_post() runs wp_slash() on $data before this filter fires (and
 		// wp_unslash() afterwards), so $data['post_content'] is escaped here. Unslash
 		// before parsing so the shortcode regex / shortcode_parse_atts see real quotes.
@@ -288,7 +288,7 @@ class SecurityScanner {
 			return $data;
 		}
 
-		// Interactive context — abort with a clear error. The user's in-progress edits remain in
+		// Interactive context - abort with a clear error. The user's in-progress edits remain in
 		// the VB's React state (AJAX) or the browser's form history (classic post.php) so they can
 		// fix and re-save.
 		if ( is_admin() || wp_doing_ajax() ) {
@@ -304,7 +304,7 @@ class SecurityScanner {
 
 			wp_die(
 				self::format_publish_error_html( $errors ),
-				__( 'Save blocked — Content Visibility validation', ContentVisibilityForDiviBuilder::get_text_domain() ),
+				__( 'Save blocked - Content Visibility validation', ContentVisibilityForDiviBuilder::get_text_domain() ),
 				array( 'back_link' => true, 'response' => 400 )
 			);
 		}
@@ -366,7 +366,7 @@ class SecurityScanner {
 	public static function rest_validate( \WP_REST_Request $request ) {
 		$expression = trim( (string) $request->get_param( 'expression' ) );
 
-		// Empty expression is always valid — means "always show".
+		// Empty expression is always valid - means "always show".
 		if ( $expression === '' ) {
 			return new \WP_REST_Response( array(
 				'valid'              => true,
@@ -562,8 +562,8 @@ class SecurityScanner {
 
 		// Only enumerate callables for the warnings/migration list when the expression is
 		// either valid or fails specifically with "Unknown callable" (the case allowlisting
-		// can solve). For any other structural error — disallowed token, disallowed character,
-		// instance method chain, bare identifier — apparent callables are unreliable noise.
+		// can solve). For any other structural error - disallowed token, disallowed character,
+		// instance method chain, bare identifier - apparent callables are unreliable noise.
 		if ( $validation !== true && strpos( $validation, 'Unknown callable' ) !== 0 ) {
 			return $analysis;
 		}

@@ -111,7 +111,7 @@
 				validationEnabled
 					? null
 					: createElement( 'div', { style: { marginTop: '4px', color: '#666' } },
-						'(Validation is currently disabled — this would block at runtime when enabled.)'
+						'(Validation is currently disabled - this would block at runtime when enabled.)'
 					)
 			) );
 		} else if ( validating && value.trim() !== '' ) {

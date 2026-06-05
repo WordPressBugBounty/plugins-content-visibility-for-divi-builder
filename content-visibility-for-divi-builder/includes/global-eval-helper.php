@@ -1,7 +1,7 @@
 <?php
 
 // Intentionally NO namespace declaration. eval()'d code runs in the namespace
-// of the calling function — keeping this helper in the global namespace means
+// of the calling function - keeping this helper in the global namespace means
 // identifiers in $expression (functions, classes, constants) resolve against
 // the global namespace at evaluation time, matching what plugin authors expect.
 //
