@@ -104,6 +104,10 @@ The following types of expressions are blocked:
 
 Yes! Three filters are available for developers to customize validation behavior. See the "Developer Filters" section below for details.
 
+= Where do I report security bugs found in this plugin? =
+
+Please report security bugs found in the source code of the Content Visibility for Divi Builder plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/06eabc6e-90ca-437a-a1c5-24b188be5fbf). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
+
 == Developer Filters ==
 
 = Expression Validation Filters =
